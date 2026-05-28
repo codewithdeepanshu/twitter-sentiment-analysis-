@@ -15,7 +15,10 @@ print("Loading model resources (BERT/RoBERTa)...")
 try:
     # Use Twitter-RoBERTa model from cardiffnlp (supports Positive, Neutral, Negative natively)
     model_name = "distilbert-base-uncased-finetuned-sst-2-english"
-    sentiment_pipeline = pipeline("sentiment-analysis", model=model_name, device=-1)
+    sentiment_pipeline = pipeline(
+    "sentiment-analysis",
+    model=model_name
+)
     print("BERT/RoBERTa sentiment pipeline loaded successfully!")
 except Exception as e:
     print(f"Error loading BERT/RoBERTa model pipeline: {e}")
