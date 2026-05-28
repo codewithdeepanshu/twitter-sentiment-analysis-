@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Insights Dashboard - X Sentiment Analyzer</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js for Advanced Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-brands fa-x-twitter logo-icon"></i>
+                <span class="logo-text">X Sentiment Analyzer</span>
+            </div>
+            <div class="nav-controls">
+                <a href="/" class="btn-back">
+                    <i class="fa-solid fa-arrow-left-long"></i> Back to Search
+                </a>
+            </div>
+        </header>
+
+        <!-- Loading State Overlay -->
+        <div class="loading-container" id="dashboard-loader">
+            <div class="loader-ripple">
+                <div></div>
+                <div></div>
+            </div>
+            <p class="loader-text" id="loader-msg">Fetching feed from X and running ML model analysis...</p>
+        </div>
+
+        <!-- Dashboard Contents (Initially hidden) -->
+        <main class="dashboard-main hidden" id="dashboard-content">
+
+            <!-- Result Title Banner -->
+            <div class="section-title-wrapper">
+                <div class="banner-info">
+                    <h1 class="dashboard-title" id="dashboard-headline">Sentiment Dashboard</h1>
+                    <p class="dashboard-sub-headline" id="dashboard-sub-headline">Analysis metrics for profile</p>
+                </div>
+                <span class="badge" id="data-source-badge">Analysis Results</span>
+            </div>
+
+            <!-- KPI Row (Statistical Summary Cards) -->
+            <div class="kpi-row">
+                <!-- KPI 1: Volume -->
+                <div class="white-card kpi-card">
+                    <div class="kpi-icon-wrapper vol-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-val" id="kpi-total">0</span>
+                        <span class="kpi-lbl">Total Posts Analyzed</span>
+                    </div>
+                </div>
+
+                <!-- ... -->
+                <!-- KPI 2: Average Score -->
+                <div class="white-card kpi-card">
+                    <div class="kpi-icon-wrapper score-icon">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-val" id="kpi-avg-score">0.00</span>
+                        <span class="kpi-lbl" id="kpi-avg-lbl">Net Sentiment (-1 to +1)</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Positivity Ratio -->
+                <div class="white-card kpi-card">
+                    <div class="kpi-icon-wrapper pos-icon">
+                        <i class="fa-regular fa-face-smile"></i>
+                    </div>
+                    <div class="kpi-data">
+                        <span class="kpi-val" id="kpi-positivity">0%</span>
+                        <span class="kpi-lbl">Positivity Index</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Diagrams Grid -->
+            <div class="charts-grid">
+
+                <!-- Card 1: Dominant Sentiment & Doughnut distribution -->
+                <div class="white-card chart-card">
+                    <div class="chart-card-header">
+                        <h3><i class="fa-solid fa-pie-chart"></i> Sentiment Distribution</h3>
+                        <p>Ratio of positive, neutral, and negative posts</p>
+                    </div>
+
+                    <div class="doughnut-content-wrapper">
+                        <!-- Doughnut Chart Canvas -->
+                        <div class="chart-container-doughnut">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+
+                        <!-- Mini Dominant Sentiment Display -->
+                        <div class="dominant-bubble-box" id="dominant-sentiment-card">
+                            <div class="overall-header">DOMINANT</div>
+                            <div class="overall-emoji-wrapper" id="dominant-emoji">😐</div>
+                            <div class="overall-sentiment-label" id="dominant-label">NEUTRAL</div>
+                            <div class="overall-confidence" id="dominant-confidence">Score classification</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Sentiment Progression Timeline -->
+                <div class="white-card chart-card" id="timeline-chart-card">
+                    <div class="chart-card-header">
+                        <h3><i class="fa-solid fa-arrow-trend-up"></i> Sentiment Progression</h3>
+                        <p>Trajectory of sentiment over the timeline (from oldest to newest post)</p>
+                    </div>
+
+                    <!-- Line Chart Canvas -->
+                    <div class="chart-container-line">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Post Stream Feed -->
+            <div class="feed-container" id="analyzed-feed-container">
+                <h3 class="feed-title"><i class="fa-brands fa-x-twitter"></i> Chronological Post Stream</h3>
+                <div class="tweet-list" id="tweet-list-target">
+                    <!-- Dynamic tweet cards inserted here -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <i class="fa-brands fa-x-twitter"></i>
+                    <span>X Sentiment Analyzer</span>
+                </div>
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank" class="social-icon" aria-label="Twitter/X"><i
+                            class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" aria-label="LinkedIn"><i
+                            class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 X Sentiment Analyzer. All rights reserved.</p>
+                <p class="credits">Platform Status: Active & Operational.</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Dashboard Scripts -->
+    <script src="/static/dashboard.js"></script>
+</body>
+
+</html>

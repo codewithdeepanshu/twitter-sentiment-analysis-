@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Sentiment Analyzer - Machine Learning Sentiment Classifier</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-brands fa-x-twitter logo-icon"></i>
+                <span class="logo-text">X Sentiment Analyzer</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="nav-link active">Home</a>
+                <a href="#analyzer-tools" class="nav-link">Prediction</a>
+                <a href="#about-section" class="nav-link">About</a>
+            </nav>
+        </header>
+
+        <!-- Hero Section (Clean modern two-column layout) -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Twitter/X Sentiment Analysis using Machine Learning</h1>
+                <p class="hero-subtitle">Reliable Source for Verifying News and Timeline Authenticity. Here you can analyze the emotional tone and polarity of public posts to uncover the truth.</p>
+                <a href="#analyzer-tools" class="btn-get-started">Get Started</a>
+            </div>
+            <div class="hero-graphic">
+                <div class="graphic-container">
+                    <!-- Clean minimalist CSS mock interface representing tweets & sentiment -->
+                    <div class="mock-tweet-card pos-card">
+                        <div class="mock-user">
+                            <div class="mock-avatar avatar-pos">A</div>
+                            <div class="mock-meta">
+                                <span class="mock-name">Aman Project</span>
+                                <span class="mock-handle">@aman_proj</span>
+                            </div>
+                            <span class="sentiment-tag pos">Positive</span>
+                        </div>
+                        <p class="mock-text">This new application UI is incredibly fast, clean, and highly intuitive! Love it. 😊</p>
+                    </div>
+                    <div class="mock-tweet-card neg-card">
+                        <div class="mock-user">
+                            <div class="mock-avatar avatar-neg">H</div>
+                            <div class="mock-meta">
+                                <span class="mock-name">Harsh Critic</span>
+                                <span class="mock-handle">@critic_x</span>
+                            </div>
+                            <span class="sentiment-tag neg">Negative</span>
+                        </div>
+                        <p class="mock-text">The server response latency is terrible when fetching large amounts of data. 😡</p>
+                    </div>
+                    <div class="mock-chart-indicator">
+                        <div class="indicator-bar" style="height: 60%; background-color: #10b981;"></div>
+                        <div class="indicator-bar" style="height: 35%; background-color: #f59e0b;"></div>
+                        <div class="indicator-bar" style="height: 15%; background-color: #ef4444;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Content -->
+        <div id="analyzer-tools" class="analyzer-section">
+            <div class="section-header">
+                <span class="section-pretitle">Machine Learning Predictor</span>
+                <h2>Choose an Analysis Method</h2>
+                <div class="section-line"></div>
+            </div>
+            
+            <div class="dashboard-grid">
+
+                <!-- Left Card: Timeline Sentiment Explorer -->
+                <div class="white-card panel-card" id="user-analysis-panel">
+                    <div class="card-header">
+                        <div class="card-icon-wrapper user-icon">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                        </div>
+                        <h3>Timeline Sentiment Explorer</h3>
+                    </div>
+                    <p class="card-desc">Evaluate the average sentiment trajectory and trends of public posts for any X/Twitter profile.</p>
+
+                    <form id="user-form" onsubmit="event.preventDefault();">
+                        <div class="form-body">
+                            <div class="input-group">
+                                <label for="username">Target X Handle</label>
+                                <div class="input-with-icon">
+                                    <span class="input-prefix">@</span>
+                                    <input type="text" id="username" placeholder="e.g. OpenAI" required autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="slider-header">
+                                    <label for="tweet-count">Recent post count</label>
+                                    <span id="slider-val" class="slider-badge">5</span>
+                                </div>
+                                <input type="range" id="tweet-count" min="5" max="20" step="1" value="5">
+                            </div>
+
+                            <!-- Configuration Toggle -->
+                            <div class="toggle-group">
+                                <div class="toggle-label-group">
+                                    <span class="toggle-title">Simulated Demo Mode</span>
+                                    <span class="toggle-desc">Use realistic fallback posts if Twitter API keys are not set</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="mock-toggle" checked>
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-analyze-user" class="btn btn-primary">
+                            <i class="fa-solid fa-bolt"></i> Run Timeline Analytics
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Card: Direct Statement Classifier -->
+                <div class="white-card panel-card" id="manual-analysis-panel">
+                    <div class="card-header">
+                        <div class="card-icon-wrapper text-icon">
+                            <i class="fa-solid fa-face-smile-beam"></i>
+                        </div>
+                        <h3>Direct Statement Classifier</h3>
+                    </div>
+                    <p class="card-desc">Run natural language processing predictions instantly on a custom comment, tweet, or statement.</p>
+
+                    <form id="text-form" onsubmit="event.preventDefault();">
+                        <div class="form-body">
+                            <div class="input-group">
+                                <label for="manual-text">Statement Input</label>
+                                <textarea id="manual-text" rows="7"
+                                    placeholder="Type or paste a custom statement here (e.g., 'I absolutely love this clean interface! The response time is incredible.')"
+                                    required></textarea>
+                                <div class="textarea-footer">
+                                    <span id="char-counter" class="char-counter">0 / 280</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-analyze-text" class="btn btn-secondary">
+                            <i class="fa-solid fa-chart-simple"></i> Run Classifier Model
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <section id="about-section" class="about-section">
+            <div class="section-header">
+                <span class="section-pretitle">How It Works</span>
+                <h2>About the Sentiment Engine</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="about-card">
+                <div class="about-grid">
+                    <div class="about-text-content">
+                        <h3>Natural Language Processing</h3>
+                        <p>Our backend employs a state-of-the-art RoBERTa model trained specifically on social media text dynamics. By parsing semantics, emotion tags, and emoji profiles, the engine generates an accurate classification of positive, neutral, or negative values.</p>
+                        <p>Whether tracking a user's recent stream or parsing single statements, it helps you uncover trends, brand sentiment, and general public opinion patterns instantly.</p>
+                    </div>
+                    <div class="about-features">
+                        <div class="feature-item">
+                            <i class="fa-solid fa-circle-check feature-icon"></i>
+                            <div>
+                                <h4>State-of-the-art Accuracy</h4>
+                                <p>Trained on millions of tweets for reliable contextual classification.</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-circle-check feature-icon"></i>
+                            <div>
+                                <h4>Real-Time Analytics</h4>
+                                <p>Calculates positivity ratios and scores instantly on demand.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <i class="fa-brands fa-x-twitter"></i>
+                    <span>X Sentiment Analyzer</span>
+                </div>
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="https://twitter.com" target="_blank" class="social-icon" aria-label="Twitter/X"><i
+                            class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-icon" aria-label="LinkedIn"><i
+                            class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 X Sentiment Analyzer. All rights reserved.</p>
+                <p class="credits">Platform Status: Active & Operational.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
