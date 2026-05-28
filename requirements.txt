@@ -2,11 +2,3 @@ flask
 flask-cors
 gunicorn
 tweepy
-scikit-learn
-nltk
-pandas
-numpy
-torch
-transformers
-accelerate
-sentencepiece
