@@ -14,7 +14,7 @@ CORS(app)
 print("Loading model resources (BERT/RoBERTa)...")
 try:
     # Use Twitter-RoBERTa model from cardiffnlp (supports Positive, Neutral, Negative natively)
-    model_name = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+    model_name = "distilbert-base-uncased-finetuned-sst-2-english"
     sentiment_pipeline = pipeline("sentiment-analysis", model=model_name, device=-1)
     print("BERT/RoBERTa sentiment pipeline loaded successfully!")
 except Exception as e:
