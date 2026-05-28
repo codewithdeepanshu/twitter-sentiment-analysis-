@@ -1,5 +1,4 @@
 import os
-import re
 import random
 from datetime import datetime, timedelta
 
@@ -19,7 +18,7 @@ app = Flask(
 
 CORS(app)
 
-print("Lightweight sentiment server started!")
+print("Lightweight sentiment app started!")
 
 # ---------------------------------------------------
 # TWITTER/X API
@@ -39,7 +38,7 @@ if BEARER_TOKEN:
 
     except Exception as e:
 
-        print(f"Tweepy init failed: {e}")
+        print(f"Twitter client error: {e}")
         tweepy_client = None
 
 else:
@@ -48,65 +47,80 @@ else:
     tweepy_client = None
 
 # ---------------------------------------------------
-# LIGHTWEIGHT SENTIMENT ANALYSIS
+# SIMPLE SENTIMENT ANALYSIS
 # ---------------------------------------------------
 
 POSITIVE_WORDS = [
-    "love", "great", "awesome", "good",
-    "happy", "excellent", "amazing",
-    "beautiful", "best", "fantastic",
-    "nice", "wonderful", "cool"
+    "love",
+    "great",
+    "awesome",
+    "good",
+    "happy",
+    "excellent",
+    "amazing",
+    "beautiful",
+    "best",
+    "fantastic",
+    "cool",
+    "nice"
 ]
 
 NEGATIVE_WORDS = [
-    "bad", "terrible", "awful", "hate",
-    "worst", "sad", "angry",
-    "disappointed", "broken", "useless",
-    "horrible", "annoying"
+    "bad",
+    "terrible",
+    "awful",
+    "hate",
+    "worst",
+    "sad",
+    "angry",
+    "disappointed",
+    "broken",
+    "useless",
+    "horrible"
 ]
 
 def predict_sentiment(text):
 
     text = text.lower()
 
-    pos_count = sum(
+    positive_score = sum(
         word in text for word in POSITIVE_WORDS
     )
 
-    neg_count = sum(
+    negative_score = sum(
         word in text for word in NEGATIVE_WORDS
     )
 
-    if pos_count > neg_count:
+    if positive_score > negative_score:
         return "Positive"
 
-    elif neg_count > pos_count:
+    elif negative_score > positive_score:
         return "Negative"
 
     else:
         return "Neutral"
 
 # ---------------------------------------------------
-# MOCK DATA
+# MOCK TWEETS
 # ---------------------------------------------------
 
-GENERIC_MOCK_TWEETS = [
+MOCK_TWEETS = [
 
+    "I love this new technology!",
     "Today is an amazing day!",
-    "Traffic is horrible today.",
-    "I love learning machine learning.",
-    "This product quality is terrible.",
-    "The weather is beautiful outside.",
-    "Coding is fun and challenging.",
+    "This product is terrible.",
+    "The weather looks beautiful.",
+    "Traffic today is horrible.",
+    "Coding is really fun.",
     "Customer support disappointed me.",
-    "This movie was incredible.",
-    "I feel very productive today.",
-    "The update broke everything."
+    "This movie is awesome!",
+    "I feel happy today.",
+    "The service was bad."
 ]
 
-def generate_mock_tweets(username, count):
+def generate_mock_tweets(count):
 
-    tweets_data = []
+    tweets = []
 
     base_time = datetime.utcnow()
 
@@ -114,46 +128,50 @@ def generate_mock_tweets(username, count):
 
         tweet_time = base_time - timedelta(hours=i)
 
-        tweets_data.append({
+        tweets.append({
 
-            "text": random.choice(
-                GENERIC_MOCK_TWEETS
-            ),
+            "text": random.choice(MOCK_TWEETS),
 
             "created_at": tweet_time.strftime(
-                "%Y-%m-%dT%H:%M:%S.000Z"
+                "%Y-%m-%d %H:%M:%S"
             )
         })
 
-    return tweets_data
+    return tweets
 
 # ---------------------------------------------------
-# ROUTES
+# HOME ROUTE
 # ---------------------------------------------------
 
 @app.route('/')
 def home():
+
     return render_template('index.html')
+
+# ---------------------------------------------------
+# DASHBOARD
+# ---------------------------------------------------
 
 @app.route('/dashboard')
 def dashboard():
+
     return render_template('dashboard.html')
 
 # ---------------------------------------------------
-# ANALYZE TEXT API
+# ANALYZE TEXT
 # ---------------------------------------------------
 
 @app.route('/api/analyze-text', methods=['POST'])
-def api_analyze_text():
+def analyze_text():
 
-    data = request.get_json() or {}
+    data = request.get_json()
 
     text = data.get("text", "").strip()
 
     if not text:
 
         return jsonify({
-            "error": "No text provided."
+            "error": "No text provided"
         }), 400
 
     sentiment = predict_sentiment(text)
@@ -178,13 +196,13 @@ def api_analyze_text():
     })
 
 # ---------------------------------------------------
-# ANALYZE USER API
+# ANALYZE USER
 # ---------------------------------------------------
 
 @app.route('/api/analyze-user', methods=['POST'])
-def api_analyze_user():
+def analyze_user():
 
-    data = request.get_json() or {}
+    data = request.get_json()
 
     username = data.get("username", "").strip()
 
@@ -193,7 +211,7 @@ def api_analyze_user():
     if not username:
 
         return jsonify({
-            "error": "No username provided."
+            "error": "No username provided"
         }), 400
 
     count = max(1, min(count, 10))
@@ -210,7 +228,7 @@ def api_analyze_user():
 
         try:
 
-            clean_username = username.lstrip('@')
+            clean_username = username.replace("@", "")
 
             user_response = tweepy_client.get_user(
                 username=clean_username
@@ -230,19 +248,19 @@ def api_analyze_user():
 
                     is_mock = False
 
-                    for t in tweets_response.data:
+                    for tweet in tweets_response.data:
 
                         tweets.append({
 
-                            "text": t.text,
+                            "text": tweet.text,
 
                             "created_at":
-                                t.created_at.strftime(
-                                    "%Y-%m-%dT%H:%M:%S.000Z"
+                                tweet.created_at.strftime(
+                                    "%Y-%m-%d %H:%M:%S"
                                 )
-                                if t.created_at
+                                if tweet.created_at
                                 else datetime.utcnow().strftime(
-                                    "%Y-%m-%dT%H:%M:%S.000Z"
+                                    "%Y-%m-%d %H:%M:%S"
                                 )
                         })
 
@@ -256,10 +274,7 @@ def api_analyze_user():
 
     if not tweets:
 
-        tweets = generate_mock_tweets(
-            username,
-            count
-        )
+        tweets = generate_mock_tweets(count)
 
         is_mock = True
 
@@ -269,34 +284,36 @@ def api_analyze_user():
 
     analyzed_tweets = []
 
-    pos_count = 0
-    neg_count = 0
-    neu_count = 0
+    positive = 0
+    negative = 0
+    neutral = 0
 
-    for t in tweets:
+    for tweet in tweets:
 
-        sentiment = predict_sentiment(t["text"])
+        sentiment = predict_sentiment(
+            tweet["text"]
+        )
 
         if sentiment == "Positive":
 
-            pos_count += 1
+            positive += 1
             emoji = "😊"
 
         elif sentiment == "Negative":
 
-            neg_count += 1
+            negative += 1
             emoji = "😡"
 
         else:
 
-            neu_count += 1
+            neutral += 1
             emoji = "😐"
 
         analyzed_tweets.append({
 
-            "text": t["text"],
+            "text": tweet["text"],
 
-            "created_at": t["created_at"],
+            "created_at": tweet["created_at"],
 
             "sentiment": sentiment,
 
@@ -309,18 +326,16 @@ def api_analyze_user():
 
         "total": total,
 
-        "positive": pos_count,
+        "positive": positive,
 
-        "negative": neg_count,
+        "negative": negative,
 
-        "neutral": neu_count
+        "neutral": neutral
     }
 
     return jsonify({
 
         "username": username,
-
-        "count": count,
 
         "is_mock": is_mock,
 
