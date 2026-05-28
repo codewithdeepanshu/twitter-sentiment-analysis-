@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import tweepy
-import torch
-from transformers import pipeline
 
 # ---------------------------------------------------
 # FLASK APP
@@ -21,28 +19,7 @@ app = Flask(
 
 CORS(app)
 
-# ---------------------------------------------------
-# LOAD LIGHTWEIGHT MODEL
-# ---------------------------------------------------
-
-print("Loading lightweight sentiment model...")
-
-try:
-    model_name = "distilbert-base-uncased-finetuned-sst-2-english"
-
-    sentiment_pipeline = pipeline(
-        "sentiment-analysis",
-        model=model_name
-    )
-
-    # Reduce CPU/RAM usage
-    torch.set_num_threads(1)
-
-    print("Sentiment pipeline loaded successfully!")
-
-except Exception as e:
-    print(f"Error loading sentiment model: {e}")
-    sentiment_pipeline = None
+print("Lightweight sentiment server started!")
 
 # ---------------------------------------------------
 # TWITTER/X API
@@ -50,38 +27,15 @@ except Exception as e:
 
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
 
-if not BEARER_TOKEN:
-
-    try:
-        secrets_path = os.path.expanduser(
-            "~/.streamlit/secrets.toml"
-        )
-
-        if os.path.exists(secrets_path):
-
-            with open(secrets_path, "r") as f:
-                content = f.read()
-
-                match = re.search(
-                    r'BEARER_TOKEN\s*=\s*["\']([^"\']+)["\']',
-                    content
-                )
-
-                if match:
-                    BEARER_TOKEN = match.group(1)
-                    print("Found BEARER_TOKEN in secrets.")
-
-    except Exception:
-        pass
-
 if BEARER_TOKEN:
 
     try:
+
         tweepy_client = tweepy.Client(
             bearer_token=BEARER_TOKEN
         )
 
-        print("Tweepy client initialized!")
+        print("Twitter client initialized!")
 
     except Exception as e:
 
@@ -94,68 +48,47 @@ else:
     tweepy_client = None
 
 # ---------------------------------------------------
-# SENTIMENT PREDICTION
+# LIGHTWEIGHT SENTIMENT ANALYSIS
 # ---------------------------------------------------
+
+POSITIVE_WORDS = [
+    "love", "great", "awesome", "good",
+    "happy", "excellent", "amazing",
+    "beautiful", "best", "fantastic",
+    "nice", "wonderful", "cool"
+]
+
+NEGATIVE_WORDS = [
+    "bad", "terrible", "awful", "hate",
+    "worst", "sad", "angry",
+    "disappointed", "broken", "useless",
+    "horrible", "annoying"
+]
 
 def predict_sentiment(text):
 
-    if not sentiment_pipeline:
-        return "Neutral"
+    text = text.lower()
 
-    try:
+    pos_count = sum(
+        word in text for word in POSITIVE_WORDS
+    )
 
-        result = sentiment_pipeline(
-            text,
-            truncation=True,
-            max_length=128
-        )[0]
+    neg_count = sum(
+        word in text for word in NEGATIVE_WORDS
+    )
 
-        label = result['label'].upper()
+    if pos_count > neg_count:
+        return "Positive"
 
-        if 'POSITIVE' in label:
-            return "Positive"
+    elif neg_count > pos_count:
+        return "Negative"
 
-        elif 'NEGATIVE' in label:
-            return "Negative"
-
-        else:
-            return "Neutral"
-
-    except Exception as e:
-
-        print(f"Prediction error: {e}")
+    else:
         return "Neutral"
 
 # ---------------------------------------------------
 # MOCK DATA
 # ---------------------------------------------------
-
-MOCK_TWEETS_BY_USER = {
-
-    "elonmusk": [
-        "SpaceX launch was amazing 🚀",
-        "Tesla AI is improving rapidly.",
-        "Mars mission planning continues.",
-        "The future of AI is exciting.",
-        "Dogecoin to the moon 🐕"
-    ],
-
-    "openai": [
-        "AI safety is important.",
-        "GPT models are evolving fast.",
-        "Voice AI feels natural now.",
-        "Excited for future AI research.",
-        "Developers are building amazing apps."
-    ],
-
-    "apple": [
-        "Apple Vision Pro looks futuristic.",
-        "The new MacBook is powerful.",
-        "iOS updates improve user privacy.",
-        "Apple design is always clean.",
-        "The ecosystem works seamlessly."
-    ]
-}
 
 GENERIC_MOCK_TWEETS = [
 
@@ -171,41 +104,21 @@ GENERIC_MOCK_TWEETS = [
     "The update broke everything."
 ]
 
-# ---------------------------------------------------
-# GENERATE MOCK TWEETS
-# ---------------------------------------------------
-
 def generate_mock_tweets(username, count):
-
-    normalized = username.lower().strip().replace("@", "")
-
-    base_tweets = MOCK_TWEETS_BY_USER.get(
-        normalized,
-        GENERIC_MOCK_TWEETS
-    )
-
-    selected_tweets = random.sample(
-        base_tweets,
-        min(len(base_tweets), count)
-    )
-
-    while len(selected_tweets) < count:
-
-        selected_tweets.append(
-            random.choice(GENERIC_MOCK_TWEETS)
-        )
 
     tweets_data = []
 
     base_time = datetime.utcnow()
 
-    for i, text in enumerate(selected_tweets):
+    for i in range(count):
 
         tweet_time = base_time - timedelta(hours=i)
 
         tweets_data.append({
 
-            "text": text,
+            "text": random.choice(
+                GENERIC_MOCK_TWEETS
+            ),
 
             "created_at": tweet_time.strftime(
                 "%Y-%m-%dT%H:%M:%S.000Z"
@@ -245,26 +158,10 @@ def api_analyze_text():
 
     sentiment = predict_sentiment(text)
 
-    if sentiment == "Positive":
-
-        confidence = round(
-            random.uniform(80, 98),
-            2
-        )
-
-    elif sentiment == "Negative":
-
-        confidence = round(
-            random.uniform(80, 98),
-            2
-        )
-
-    else:
-
-        confidence = round(
-            random.uniform(45, 65),
-            2
-        )
+    confidence = round(
+        random.uniform(70, 98),
+        2
+    )
 
     return jsonify({
 
@@ -293,8 +190,6 @@ def api_analyze_user():
 
     count = int(data.get("count", 5))
 
-    force_mock = data.get("mock", False)
-
     if not username:
 
         return jsonify({
@@ -308,10 +203,10 @@ def api_analyze_user():
     is_mock = True
 
     # -----------------------------------------------
-    # TRY REAL TWITTER/X API
+    # TRY REAL TWITTER API
     # -----------------------------------------------
 
-    if not force_mock and tweepy_client:
+    if tweepy_client:
 
         try:
 
@@ -418,19 +313,7 @@ def api_analyze_user():
 
         "negative": neg_count,
 
-        "neutral": neu_count,
-
-        "positive_percentage":
-            round((pos_count / total) * 100, 2)
-            if total else 0,
-
-        "negative_percentage":
-            round((neg_count / total) * 100, 2)
-            if total else 0,
-
-        "neutral_percentage":
-            round((neu_count / total) * 100, 2)
-            if total else 0
+        "neutral": neu_count
     }
 
     return jsonify({
@@ -463,18 +346,9 @@ def health():
 
 if __name__ == '__main__':
 
-    import sys
-
-    if '--check' in sys.argv:
-
-        print("Integrity check passed.")
-        sys.exit(0)
-
     port = int(
         os.environ.get("PORT", 5000)
     )
-
-    print(f"Starting server on port {port}...")
 
     app.run(
         host='0.0.0.0',
